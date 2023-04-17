@@ -1,0 +1,38 @@
+name: Refresh Ethereum KZG Ceremony state
+
+on:
+  schedule:
+    # Trigger every day at 1:00 and 13:00
+    - cron: '0 1,13 * * 0'
+  workflow_dispatch:
+
+jobs:
+  refresh-eth-kzg-state:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install curl jq
+
+    - name: Refresh Ethereum KZG Ceremony state
+      run: ./sync_kzg_state.sh
+
+    - name: Show git status
+      run: git status
+
+    - name: Show git diff
+      run: git diff
+
+    - name: Commit the diff
+      run: |
+        if git status --short | grep '^' ; then
+            git config user.name "Automatic Updater"
+            git config user.email "automatic-updater"
+            git add --all .
+            git commit -m "Refresh Ethereum KZG Ceremony state $(date --utc +"%Y-%m-%d %H:%M:%S")"
+            git push origin main
+        fi
